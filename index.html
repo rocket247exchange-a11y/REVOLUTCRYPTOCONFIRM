@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard Replica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+        }
+
+        .app-bg {
+            background: 
+                radial-gradient(circle at 10% 0%, #D4C15A 0%, transparent 45%),
+                radial-gradient(circle at 90% 10%, #A282A8 0%, transparent 45%),
+                radial-gradient(circle at 50% 40%, #E3BAA6 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, #D8CDD6 0%, transparent 60%),
+                #e8d197;
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .card-bg {
+            background-color: #F8F7F3;
+        }
+
+        .chart-green { stroke: #2D8E6F; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .chart-fill { fill: url(#greenGradient); opacity: 0.2; }
+        
+        .app-container::-webkit-scrollbar { display: none; }
+        .app-container { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Device Container -->
+    <div class="app-container app-bg relative w-full max-w-[390px] h-[844px] overflow-y-auto shadow-2xl overflow-hidden sm:rounded-[40px] sm:border-[8px] border-black">
+        
+        <!-- MODALS OVERLAY (Hidden by default) -->
+        <div id="modal-backdrop" class="absolute inset-0 z-[100] bg-black/50 backdrop-blur-[2px] hidden opacity-0 transition-opacity duration-300"></div>
+        
+        <!-- POPUP 1: Confirmation Warning -->
+        <div id="popup-1" class="absolute z-[101] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] card-bg rounded-[28px] p-6 shadow-2xl hidden opacity-0 transition-all duration-300 scale-95 flex flex-col items-center text-center">
+             <div class="w-14 h-14 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-yellow-200">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+             </div>
+             <h3 class="text-[19px] font-bold text-gray-900 mb-2">Confirm Action</h3>
+             <p class="text-[15px] text-gray-600 font-medium mb-6 leading-relaxed">
+                 Are you sure you want to receive <br><strong class="text-gray-900">£10,000</strong> (≈ 2,500,000,000 SHIB) <br>from <strong class="text-gray-900">Shelley marigold</strong>?
+             </p>
+             <div class="flex gap-3 w-full">
+                 <button id="btn-no" class="flex-1 py-3.5 bg-gray-200 text-gray-800 rounded-full font-bold text-[15px] hover:bg-gray-300 transition-colors">No</button>
+                 <button id="btn-yes" class="flex-1 py-3.5 bg-[#1A1A1A] text-white rounded-full font-bold text-[15px] hover:bg-black transition-colors">Yes</button>
+             </div>
+        </div>
+
+        <!-- POPUP 2: Final Checkout Bottom Sheet -->
+        <div id="popup-2" class="absolute z-[101] bottom-0 left-0 w-full card-bg rounded-t-[32px] p-6 shadow-2xl hidden transform translate-y-full transition-transform duration-300 ease-out flex flex-col pb-10">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-[22px] font-bold text-gray-900 mb-6 text-center">Checkout Details</h3>
+            
+            <div class="space-y-1 mb-8">
+                <div class="flex justify-between items-center py-3.5 border-b border-gray-200">
+                    <span class="text-gray-500 font-semibold text-[15px]">Credited to</span>
+                    <span class="text-gray-900 font-bold text-right text-[14px]">JASVIR SINGH DHILLON</span>
+                </div>
+                <div class="flex justify-between items-center py-3.5 border-b border-gray-200">
+                    <span class="text-gray-500 font-semibold text-[15px]">Amount</span>
+                    <div class="text-right">
+                        <div class="text-[#2D8E6F] font-bold text-[16px]">+£10,000.00</div>
+                        <div class="text-[12px] text-gray-500 font-medium mt-0.5">≈ 2,500,000,000 SHIB</div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center py-3.5 border-b border-gray-200">
+                    <span class="text-gray-500 font-semibold text-[15px]">Revolut network fee</span>
+                    <span class="text-gray-900 font-bold text-right text-[15px]">£150.00</span>
+                </div>
+                <div class="py-3.5">
+                    <span class="text-gray-500 font-semibold block mb-2 text-[15px]">Fee Payment Address</span>
+                    <div class="bg-gray-200/60 p-3.5 rounded-[16px] text-[13px] font-mono font-medium text-gray-800 break-all border border-gray-200/80 shadow-inner">
+                        0xc52936dc633d313ed35c2401d781d7e54177d455
+                    </div>
+                </div>
+            </div>
+
+            <button class="w-full bg-[#1A1A1A] text-white py-4 rounded-full font-bold text-[16px] mb-3 hover:bg-black transition-colors shadow-md flex justify-center items-center gap-2">
+                Pay Fee & Complete
+            </button>
+            <button id="btn-close-checkout" class="w-full text-gray-500 py-3 rounded-full font-bold text-[15px] hover:text-gray-800 transition-colors">Cancel</button>
+        </div>
+
+
+        <!-- Header Nav -->
+        <div class="px-5 pt-12 pb-3 flex items-center justify-between gap-3">
+            <!-- Profile Avatar with Hoodie -->
+            <div class="relative w-11 h-11 rounded-full bg-[#96BCA8] flex flex-col items-center justify-end overflow-hidden shadow-sm shrink-0">
+                <svg class="absolute top-[-2px] w-7 h-7 text-gray-800 opacity-90" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.686 2 6 4.686 6 8v3H5v2h14v-2h-1V8c0-3.314-2.686-6-6-6zm0 2c2.209 0 4 1.791 4 4v3H8V8c0-2.209 1.791-4 4-4z"/>
+                </svg>
+                <span class="text-[#1A3B2B] text-[11px] font-bold mb-1 z-10 relative">JD</span>
+                <div class="absolute top-0 right-0 w-2.5 h-2.5 bg-[#FF453A] rounded-full border-2 border-[#D4C15A]"></div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 h-11 glass-btn rounded-full flex items-center px-4 gap-2">
+                <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <span class="text-gray-800 text-[16px] font-medium tracking-wide">Search</span>
+            </div>
+
+            <!-- Analytics Icon -->
+            <div class="w-11 h-11 glass-btn rounded-full flex items-center justify-center shrink-0 cursor-pointer">
+                <svg class="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 10h4v10H4zM10 4h4v16h-4zM16 14h4v6h-4z"></path>
+                </svg>
+            </div>
+
+            <!-- Card Icon -->
+            <div class="w-11 h-11 glass-btn rounded-full flex items-center justify-center shrink-0 cursor-pointer">
+                <svg class="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 6h16a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2zm0 4v6h16v-6H4zm0-2h16V8H4v.001z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Warning Disclaimer -->
+        <div class="px-6 text-center text-white text-[12px] font-semibold leading-tight drop-shadow-md mb-4">
+            Don't invest unless you're prepared to lose all the money you invest. This is a high-risk investment and you should not expect to be protected if something goes wrong. 
+            <a href="#" class="underline decoration-white/70 underline-offset-2 hover:text-gray-200">Take 2 mins to learn more</a>
+        </div>
+
+        <!-- Main Screen Hero Balance Display -->
+        <div id="main-balance-container" class="hidden opacity-0 transform -translate-y-2 transition-all duration-700 ease-out text-center my-3">
+            <div class="text-[38px] font-extrabold text-white tracking-tight leading-none drop-shadow-md">
+                £10,000.00
+            </div>
+            <div class="text-[14px] font-semibold text-white/90 mt-1.5 drop-shadow-sm tracking-wide">
+                ≈ 2,500,000,000 SHIB
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between px-7 my-5">
+            <div class="flex flex-col items-center gap-2 cursor-pointer">
+                <div class="w-12 h-12 glass-btn rounded-full flex items-center justify-center text-white shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <span class="text-white font-medium text-[13px] drop-shadow-sm">Trade</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer">
+                <div class="w-12 h-12 glass-btn rounded-full flex items-center justify-center text-white shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </div>
+                <span class="text-white font-medium text-[13px] drop-shadow-sm">Receive</span>
+            </div>
+            <!-- SEND BUTTON ID ADDED HERE -->
+            <div id="btn-trigger-send" class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                <div class="w-12 h-12 glass-btn rounded-full flex items-center justify-center text-white shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                </div>
+                <span class="text-white font-medium text-[13px] drop-shadow-sm">Send</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 cursor-pointer">
+                <div class="w-12 h-12 glass-btn rounded-full flex items-center justify-center text-white shadow-sm">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 12a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <span class="text-white font-medium text-[13px] drop-shadow-sm">More</span>
+            </div>
+        </div>
+
+        <!-- Scrollable Cards Section -->
+        <div class="px-4 pb-28">
+            
+            <!-- Explore Crypto Card -->
+            <div class="card-bg rounded-[28px] p-5 mb-4 shadow-sm cursor-pointer">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="relative w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm border-2 border-gray-200">
+                        <span class="text-[13px]">1/3</span>
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90 text-blue-600" viewBox="0 0 36 36">
+                            <path stroke-dasharray="33, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-[18px] font-bold text-gray-900 leading-tight">Explore crypto</h2>
+                        <p class="text-[15px] text-gray-500 font-medium">Start growing your portfolio</p>
+                    </div>
+                </div>
+                <button class="w-full bg-[#1A1A1A] text-white rounded-full py-3.5 font-semibold text-[16px] hover:bg-black transition-colors">
+                    Get started
+                </button>
+            </div>
+
+            <!-- Dynamic Balance Card & Transactions -->
+            <div id="dynamic-content" class="hidden opacity-0 transform translate-y-4 transition-all duration-700 ease-out">
+                
+                <!-- Shiba Inu Balance Card -->
+                <div class="card-bg rounded-[28px] p-5 mb-4 flex items-center justify-between shadow-sm cursor-pointer">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-full bg-white flex items-center justify-center overflow-hidden border border-gray-100 shadow-sm shrink-0">
+                            <img src="https://cryptologos.cc/logos/shiba-inu-shib-logo.png" alt="SHIB" class="w-7 h-7 object-contain drop-shadow-sm">
+                        </div>
+                        <div>
+                            <div class="font-bold text-[18px] text-gray-900">Shiba Inu</div>
+                            <div class="text-[14px] text-gray-500 font-medium">
+                                2,500,000,000 SHIB · <br> £0.0000040
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-[18px] text-gray-900 mb-1">£10,000.00</div>
+                        <div class="text-[14px] text-[#D84242] font-semibold tracking-tight">▼ 1.12%</div>
+                    </div>
+                </div>
+
+                <!-- Transactions Card -->
+                <div class="card-bg rounded-[28px] p-5 mb-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-5 cursor-pointer">
+                        <div class="font-semibold text-gray-500 text-[16px] flex items-center gap-1">
+                            Transactions <svg class="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between cursor-pointer">
+                        <div class="flex items-center gap-3.5">
+                            <div class="relative w-11 h-11 rounded-full bg-white flex items-center justify-center border border-gray-100 shadow-sm shrink-0">
+                                <img src="https://cryptologos.cc/logos/shiba-inu-shib-logo.png" alt="SHIB" class="w-7 h-7 object-contain drop-shadow-sm">
+                                <div class="absolute -bottom-1 -left-1 bg-[#1A1A1A] text-white rounded-full w-5 h-5 flex items-center justify-center border-[2px] border-white">
+                                    <svg class="w-3 h-3 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-[17px] text-gray-900">Receive SHIB</div>
+                                <div class="text-[14px] text-gray-500 font-medium mt-0.5">Today, 11:16 AM</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-[17px] text-[#2D8E6F]">+2,500,000,000 SHIB</div>
+                            <div class="text-[14px] text-gray-500 font-medium mt-0.5">+£10,000.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Mini Widgets Grid -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="card-bg rounded-[24px] p-4 shadow-sm relative overflow-hidden h-[130px] flex flex-col justify-between cursor-pointer">
+                    <div class="flex justify-between items-start z-10">
+                        <div>
+                            <div class="font-bold text-[15px] text-gray-500 mb-1">BTC</div>
+                            <div class="font-extrabold text-[20px] text-gray-900">£59,037</div>
+                            <div class="text-[13px] text-[#2D8E6F] font-bold mt-1">▲ 0.10%</div>
+                        </div>
+                        <div class="w-6 h-6 rounded-full bg-[#F7931A] flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M14.7 11.2c.7-.4 1.2-1 1.2-1.9 0-1.8-1.4-2.8-3.8-2.8H8v11h4.6c2.8 0 4.2-1.2 4.2-3 0-1.3-.7-2.3-2.1-2.7zM10.2 8h1.8c1.1 0 1.6.4 1.6 1.2 0 .8-.5 1.3-1.6 1.3h-1.8V8zm2.2 6.5h-2.2v-2.8h2.2c1.3 0 1.9.5 1.9 1.4 0 .9-.6 1.4-1.9 1.4z"/></svg>
+                        </div>
+                    </div>
+                    <svg class="absolute bottom-0 left-0 w-full h-[60px] transform translate-y-1" viewBox="0 0 100 40" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="greenGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#2D8E6F" stop-opacity="0.3"/>
+                                <stop offset="100%" stop-color="#2D8E6F" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="chart-fill" d="M0 30 L5 25 L15 30 L25 10 L35 35 L45 20 L55 30 L65 15 L75 25 L85 5 L95 15 L100 10 L100 40 L0 40 Z" />
+                        <path class="chart-green" d="M0 30 L5 25 L15 30 L25 10 L35 35 L45 20 L55 30 L65 15 L75 25 L85 5 L95 15 L100 10" />
+                    </svg>
+                </div>
+
+                <div class="card-bg rounded-[24px] p-4 shadow-sm relative overflow-hidden h-[130px] flex flex-col justify-between cursor-pointer">
+                    <div class="flex justify-between items-start z-10">
+                        <div>
+                            <div class="font-bold text-[15px] text-gray-500 mb-1">ETH</div>
+                            <div class="font-extrabold text-[20px] text-gray-900">£1,821.04</div>
+                            <div class="text-[13px] text-[#2D8E6F] font-bold mt-1">▲ 0.31%</div>
+                        </div>
+                        <div class="w-6 h-6 rounded-full bg-[#627EEA] flex items-center justify-center shrink-0">
+                            <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 0L11.8 4v11.7l.1.1 5.5-3.2L11.9 0zm-.1 17l-.1.1v6.7l.1.3 5.6-7.9-5.6 3.1zM6.4 12.5l5.5 3.2V4L6.4 12.5zm0 3.3L11.8 24v-7l-5.4-1.2z"/></svg>
+                        </div>
+                    </div>
+                    <svg class="absolute bottom-0 left-0 w-full h-[60px] transform translate-y-1" viewBox="0 0 100 40" preserveAspectRatio="none">
+                        <path class="chart-fill" d="M0 25 L10 20 L20 30 L30 15 L40 35 L50 25 L60 30 L70 10 L80 20 L90 15 L100 5 L100 40 L0 40 Z" />
+                        <path class="chart-green" d="M0 25 L10 20 L20 30 L30 15 L40 35 L50 25 L60 30 L70 10 L80 20 L90 15 L100 5" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Bottom Navigation -->
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-[340px] bg-[#F4F3ED] rounded-full h-[60px] shadow-lg flex items-center justify-between px-6 z-50">
+            <span class="font-bold text-gray-800 text-xl cursor-pointer">R</span>
+            
+            <svg class="w-6 h-6 text-gray-500 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            
+            <svg class="w-5 h-5 text-gray-500 cursor-pointer transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+            
+            <div class="w-12 h-8 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer shadow-sm">
+                <svg class="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="currentColor"><path d="M14.7 11.2c.7-.4 1.2-1 1.2-1.9 0-1.8-1.4-2.8-3.8-2.8H8v11h4.6c2.8 0 4.2-1.2 4.2-3 0-1.3-.7-2.3-2.1-2.7zM10.2 8h1.8c1.1 0 1.6.4 1.6 1.2 0 .8-.5 1.3-1.6 1.3h-1.8V8zm2.2 6.5h-2.2v-2.8h2.2c1.3 0 1.9.5 1.9 1.4 0 .9-.6 1.4-1.9 1.4z"/></svg>
+            </div>
+            
+            <svg class="w-6 h-6 text-gray-500 cursor-pointer" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 013 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.4 7.82l6.6 3.74 6.6-3.74L12 4.15zM5 15.91l6 3.38v-6.71L5 9.19v6.72zm14 0v-6.72l-6 3.39v6.71l6-3.38z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // -- Existing Balance Delay Logic --
+            const mainBalanceContainer = document.getElementById('main-balance-container');
+            const dynamicContent = document.getElementById('dynamic-content');
+            
+            setTimeout(() => {
+                mainBalanceContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    mainBalanceContainer.classList.remove('opacity-0', '-translate-y-2');
+                }, 50);
+
+                dynamicContent.classList.remove('hidden');
+                setTimeout(() => {
+                    dynamicContent.classList.remove('opacity-0', 'translate-y-4');
+                }, 50);
+            }, 5000);
+
+            // -- Modal & Checkout Logic --
+            const btnSend = document.getElementById('btn-trigger-send');
+            const backdrop = document.getElementById('modal-backdrop');
+            const popup1 = document.getElementById('popup-1');
+            const popup2 = document.getElementById('popup-2');
+            
+            const btnNo = document.getElementById('btn-no');
+            const btnYes = document.getElementById('btn-yes');
+            const btnCloseCheckout = document.getElementById('btn-close-checkout');
+
+            // 1. Show Warning Popup on Send Click
+            btnSend.addEventListener('click', () => {
+                backdrop.classList.remove('hidden');
+                popup1.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    popup1.classList.remove('opacity-0', 'scale-95');
+                }, 10);
+            });
+
+            // 2. Hide modals completely (Cancel Actions)
+            const closeAllModals = () => {
+                backdrop.classList.add('opacity-0');
+                popup1.classList.add('opacity-0', 'scale-95');
+                popup2.classList.add('translate-y-full');
+                
+                setTimeout(() => {
+                    backdrop.classList.add('hidden');
+                    popup1.classList.add('hidden');
+                    popup2.classList.add('hidden');
+                }, 300);
+            };
+
+            btnNo.addEventListener('click', closeAllModals);
+            btnCloseCheckout.addEventListener('click', closeAllModals);
+
+            // 3. Go from Warning to Checkout Bottom Sheet
+            btnYes.addEventListener('click', () => {
+                popup1.classList.add('opacity-0', 'scale-95');
+                
+                setTimeout(() => {
+                    popup1.classList.add('hidden');
+                    popup2.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        popup2.classList.remove('translate-y-full');
+                    }, 10);
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>
