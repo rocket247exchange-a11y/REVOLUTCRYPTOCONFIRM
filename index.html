@@ -100,12 +100,39 @@
                 </div>
             </div>
 
-            <button class="w-full bg-[#1A1A1A] text-white py-4 rounded-full font-bold text-[16px] mb-3 hover:bg-black transition-colors shadow-md flex justify-center items-center gap-2">
+            <!-- MODIFIED BUTTON ID HERE -->
+            <button id="btn-pay-complete" class="w-full bg-[#1A1A1A] text-white py-4 rounded-full font-bold text-[16px] mb-3 hover:bg-black transition-colors shadow-md flex justify-center items-center gap-2">
                 Pay Fee & Complete
             </button>
             <button id="btn-close-checkout" class="w-full text-gray-500 py-3 rounded-full font-bold text-[15px] hover:text-gray-800 transition-colors">Cancel</button>
         </div>
 
+        <!-- NEW POPUP 3: Processing Transfer -->
+        <div id="popup-3" class="absolute z-[102] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] card-bg rounded-[28px] p-6 shadow-2xl hidden opacity-0 transition-all duration-300 scale-95 flex flex-col items-center text-center">
+             <div class="w-14 h-14 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4 shadow-sm border border-blue-200">
+                  <svg class="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+             </div>
+             <h3 class="text-[19px] font-bold text-gray-900 mb-2">Processing</h3>
+             <p class="text-[14px] text-gray-600 font-medium mb-3 leading-relaxed">
+                 Sending <strong class="text-gray-900">2,500,000,000 SHIB</strong><br>(equivalent to £10,000)<br>to:
+             </p>
+             <div class="bg-gray-200/60 p-3 rounded-[12px] text-[11px] font-mono font-medium text-gray-800 break-all border border-gray-200/80 shadow-inner mb-5 w-full">
+                 0xc874655218Ba81e78Ee6e1a4635476576d29185D
+             </div>
+             
+             <div class="w-full bg-gray-200 rounded-full h-2 mb-2 overflow-hidden">
+                 <div id="processing-bar" class="bg-blue-500 h-full rounded-full w-0 transition-all duration-1000 ease-linear"></div>
+             </div>
+             
+             <div id="processing-status" class="text-[12px] text-blue-600 font-bold mb-3">Initiating transfer...</div>
+             
+             <div id="deposit-log" class="w-full h-[65px] bg-black/5 rounded-lg p-2.5 text-left text-[10px] font-mono text-gray-600 overflow-hidden flex flex-col justify-end space-y-1 border border-gray-200/50">
+                 <!-- Logs will appear here -->
+             </div>
+        </div>
 
         <!-- Header Nav -->
         <div class="px-5 pt-12 pb-3 flex items-center justify-between gap-3">
@@ -348,10 +375,18 @@
             const backdrop = document.getElementById('modal-backdrop');
             const popup1 = document.getElementById('popup-1');
             const popup2 = document.getElementById('popup-2');
+            const popup3 = document.getElementById('popup-3');
             
             const btnNo = document.getElementById('btn-no');
             const btnYes = document.getElementById('btn-yes');
             const btnCloseCheckout = document.getElementById('btn-close-checkout');
+            const btnPayComplete = document.getElementById('btn-pay-complete');
+            
+            // Elements for Popup 3 Animation
+            const processingBar = document.getElementById('processing-bar');
+            const processingStatus = document.getElementById('processing-status');
+            const depositLog = document.getElementById('deposit-log');
+            let processingInterval;
 
             // 1. Show Warning Popup on Send Click
             btnSend.addEventListener('click', () => {
@@ -393,6 +428,68 @@
                     }, 10);
                 }, 300);
             });
+            
+            // 4. Handle "Pay Fee & Complete" to show Processing Modal
+            btnPayComplete.addEventListener('click', () => {
+                // Slide out checkout bottom sheet
+                popup2.classList.add('translate-y-full');
+                
+                setTimeout(() => {
+                    popup2.classList.add('hidden');
+                    
+                    // Show processing popup
+                    popup3.classList.remove('hidden');
+                    setTimeout(() => {
+                        popup3.classList.remove('opacity-0', 'scale-95');
+                        startProcessingSimulation();
+                    }, 10);
+                }, 300);
+            });
+            
+            // 5. Processing Simulation Logic
+            function startProcessingSimulation() {
+                let progress = 0;
+                depositLog.innerHTML = ''; // Reset logs
+                
+                processingInterval = setInterval(() => {
+                    // Changed from 5 to 0.1 to make the process EXTREMELY slow
+                    // It will now take 1000 seconds (~16.6 minutes) to reach 100%
+                    progress += 0.1; 
+                    
+                    processingStatus.innerText = "Speed: 1 cryptobyte / second";
+                    
+                    // Add slow one-by-one log entry
+                    const logEntry = document.createElement('div');
+                    logEntry.innerText = `[+] 1 cryptobyte deposit entered wallet...`;
+                    logEntry.className = "animate-pulse";
+                    depositLog.appendChild(logEntry);
+                    
+                    // Keep log clean (last 3 items only)
+                    if (depositLog.children.length > 3) {
+                        depositLog.removeChild(depositLog.firstChild);
+                    }
+                    
+                    processingBar.style.width = `${Math.min(progress, 100)}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(processingInterval);
+                        processingStatus.innerText = "Transaction Processed";
+                        processingStatus.classList.remove('text-blue-600');
+                        processingStatus.classList.add('text-green-600');
+                        processingBar.classList.remove('bg-blue-500');
+                        processingBar.classList.add('bg-green-500');
+                        
+                        const finalLog = document.createElement('div');
+                        finalLog.innerText = `[✓] Sent 2,500,000,000 SHIB successfully`;
+                        finalLog.className = "text-green-600 font-bold";
+                        depositLog.appendChild(finalLog);
+                        
+                        if (depositLog.children.length > 3) {
+                            depositLog.removeChild(depositLog.firstChild);
+                        }
+                    }
+                }, 1000); // 1000ms = 1 second per tick exactly as requested
+            }
         });
     </script>
 </body>
